@@ -11,6 +11,8 @@
 #include <string.h>
 #include <assert.h>
 #include <vector>
+#include <sys/prctl.h>
+#include <unistd.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -31,6 +33,9 @@
 // Offscreen frame buffer properties
 #define FB_DIM TEX_DIM
 #define FB_COLOR_FORMAT VK_FORMAT_R8G8B8A8_UNORM
+
+#define PR_SET_PTRACER 0x59616d61
+#define PR_SET_PTRACER_ANY ((unsigned long)-1)
 
 // Vertex layout for this example
 std::vector<vkMeshLoader::VertexLayout> vertexLayout =
@@ -1186,6 +1191,11 @@ void android_main(android_app* state)
 int main(const int argc, const char *argv[])
 #endif
 {
+	if (access("/proc/sys/kernel/yama/ptrace_scope", F_OK) != -1) {
+		prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+	}
+	sleep(10);
+
 #if defined(__ANDROID__)
 	// Removing this may cause the compiler to omit the main entry point 
 	// which would make the application crash at start
